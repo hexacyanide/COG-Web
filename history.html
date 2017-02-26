@@ -60,17 +60,23 @@ extra_scripts:
     <div class="panel-body">
       <div class="table-responsive">
 
-        <table class="table table-hover" id="history-table">
+        <table class="table table-hover table-bordered" id="history-table">
           <thead>
             <tr>
-              <th class="col-md-3">Time</th>
-              <th class="col-md-2">Score out of <span id="max_score">TBD</span></th>
-              <th class="col-md-2">Return Code</th>
-              <th class="col-md-3">Status</th>
-              <th class="col-md-2">More Information</th>
+              <th class="col-md-3">Timestamp</th>
+              <th class="col-md-2">Score (/<span id="max-score"></span>)</th>
+              <th class="col-md-1">Grade</th>
+              <th class="col-md-1">Exit Code</th>
+              <th class="col-md-3">Completion Status</th>
+              <th class="col-md-2">Details</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="history-table-contents">
+            <tr>
+              <td class="col-md-12" style="text-align: center;" colspan="6">
+                Please submit a search to see results
+              </td>
+            </tr>
           </tbody>
         </table>
 

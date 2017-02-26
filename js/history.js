@@ -96,7 +96,7 @@
         users.prop('disabled', true);
 
         // remove the max score, as there is no specified test
-        $('span#max_score').text(0);
+        $('span#max-score').text(0);
         // disable the submit button
         $('button#submit').prop('disabled', true);
         return;
@@ -126,7 +126,7 @@
       var test = data[uuid];
 
       // update the maximum possible score indicator
-      $('span#max_score').text(test.maxscore);
+      $('span#max-score').text(test.maxscore);
       // enable the submit button
       $('button#submit').prop('disabled', false);
 
@@ -164,7 +164,7 @@
     var user = $('select#user').val();
 
     // create a attribute link for this search
-    var hash = 'asn=' + assignment + '&tst=' + test + '&usr=' + user + '&search=1';
+    var hash = 'asn=' + assignment + '&tst=' + test + '&usr=' + user;
     window.location.hash = hash;
 
     // lock all form fields
@@ -340,9 +340,6 @@
 
     select.val(usr);
     select.change();
-
-    // if the search attribute is set, submit immediately
-    if (util.getHashParameter('search') == 1) $('#submit').click();
   }
 
   function populateResultTable(list) {
@@ -375,22 +372,27 @@
     };
 
     var str = elements.map(function(ele) {
-      var submission = '<a href="/submission/?uuid=' + ele.submission + '">Submission</a>';
-      var run = '<a href="/run/?uuid=' + ele.uuid + '">Run</a>';
+      var submission = '<a href="/submission/?uuid=' + ele.submission + '">Files</a>';
+      var run = '<a href="/run/?uuid=' + ele.uuid + '">Output</a>';
 
       var sub = ele.status.split('-');
       var color = (sub.length > 1) ? colors[sub[1]] : colors.success;
 
       return [
         '<tr><td>' + ele.mtime.toLocaleString() + '</td>',
+        // '<td>' + ele.score + ' (' + ((ele.score / 60) * 100).toFixed(2) + '%)</td>',
         '<td>' + ele.score + '</td>',
+        '<td>' + ((ele.score / 60) * 100).toFixed(2) + '%</td>',
         '<td>' + ele.retcode + '</td>',
         '<td class="' + color + '">' + ele.status + '</td>',
         '<td>' + submission + ' or ' + run + '</td></tr>'
       ].join('');
     }).join('');
-
+    
+    $('#history-table-contents').hide();
     $('#history-table').append(str);
+    $('#history-table-contents').fadeIn(500);
+    
     submit.ladda('stop');
     $('button#submit').children('span.ladda-label').html('Search');
 
