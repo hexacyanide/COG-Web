@@ -1,5 +1,5 @@
 /*global
-  $, async, debug, cog
+  $, async, debug, cog, util
 */
 
 (function(window, document) {
@@ -131,10 +131,7 @@
       $('button#submit').prop('disabled', false);
 
       // for non-administrators, stop execution here
-      if (!admin) {
-      	// if(util.getHashParameter('search')) $("#submitform").submit();
-      	return;
-      }
+      if (!admin) return;
       log('current user is of type administrator, loading usernames');
 
       cog.getUsersNamelist(function(err, data) {
@@ -153,7 +150,6 @@
     var uuid = sel.val();
     var text = sel.text();
     log('user selector changed to `%s` (%s)', text, uuid.substring(0, 8));
-	if(util.getHashParameter('search')) $("#submitform").submit();
   });
 
   $('form#submitform').submit(function(event) {
@@ -164,7 +160,12 @@
     $('button#submit').children('span.ladda-label').html('Searching...');
 
     var assignment = $('select#assignment').val();
+    var test = $('select#test').val();
     var user = $('select#user').val();
+
+    // create a attribute link for this search
+    var hash = 'asn=' + assignment + '&tst=' + test + '&usr=' + user + '&search=1';
+    window.location.hash = hash;
 
     // lock all form fields
     $('select#assignment').prop('disabled', true);
@@ -216,7 +217,7 @@
         log('fetching metadata for individual run entries (%d total)', runs.length);
         async.map(runs, cog.getRun.bind(cog), function(err, results) {
           log('received all test metadata from server (took %s requests)', submissions.length + runs.length);
-          
+
           // filter submissions by test UUID
           // this should really be done on the server side, but it's not
           var test = $('select#test').val();
@@ -263,15 +264,11 @@
     // select the last entry, as per old behavior
     // select.find('option:last').attr('selected', 'selected');
     // select.val(select.children('option:last').val());
-    var asn_uuid = util.getHashParameter('asn');
-    log('attempting to fetch run result record for %s', asn_uuid);
 
-    if (asn_uuid == null) {
-    	select.val(select.children('option:last').val());
-    }
-    else {
-	    select.val(asn_uuid);
-    }
+    log('attempting to fetch run result record for %s', asn);
+    // use the hash parameter if it's given
+    var asn = util.getHashParameter('asn') || select.children('option:last').val();
+    select.val(asn);
     select.change();
   }
 
@@ -303,18 +300,11 @@
     select.prop('disabled', false);
 
     // select the last entry (assumed most recent)
-    select.val(select.children('option:last').val());
-    var tst_uuid = util.getHashParameter('tst');
+    // select.val(select.children('option:last').val());
 
-    if (tst_uuid == null) {
-    	select.val(select.children('option:last').val());
-    }
-    else {
-		select.val(tst_uuid);
-		if(select.val() == null) {
-			select.val(select.children('option:last').val());
-		}
-    }
+    // use the hash parameter if provided, otherwise use the last one
+    var test = util.getHashParameter('tst') || select.children('option:last').val();
+    select.val(test);
     select.change();
   }
 
@@ -344,23 +334,18 @@
     select.html(str);
     select.prop('disabled', false);
 
-    // select the currently logged in user
-    var usr_uuid = util.getHashParameter('usr');
-    log('attempting to fetch run result record for %s', usr_uuid);
-    
-    if (usr_uuid == null) {
-    	select.val(uuid);
-    }
-    else {
-	    select.val(usr_uuid);
-    }
+    // select the currently logged in user, or as specified by hash
+    var usr = util.getHashParameter('usr') || uuid;
+    log('attempting to fetch run result record for %s', usr);
+
+    select.val(usr);
     select.change();
+
+    // if the search attribute is set, submit immediately
+    if (util.getHashParameter('search') == 1) $('#submit').click();
   }
 
   function populateResultTable(list) {
-  	location.hash = "asn=" + $('select#assignment').val() + "&tst=" +
-  					 $('select#test').val() + "&usr=" + $('select#user').val()
-  					 + "&search=1";
     var elements = [];
 
     list.forEach(function(entry) {
@@ -389,7 +374,7 @@
       error: 'text-danger'
     };
 
-    var str = elements.map(function(ele) { 
+    var str = elements.map(function(ele) {
       var submission = '<a href="/submission/?uuid=' + ele.submission + '">Submission</a>';
       var run = '<a href="/run/?uuid=' + ele.uuid + '">Run</a>';
 
