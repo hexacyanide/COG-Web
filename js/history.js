@@ -132,7 +132,7 @@
 
       // for non-administrators, stop execution here
       if (!admin) {
-      	if(util.getHashParameter('search')) $("#submitform").submit();
+      	// if(util.getHashParameter('search')) $("#submitform").submit();
       	return;
       }
       log('current user is of type administrator, loading usernames');
@@ -216,6 +216,14 @@
         log('fetching metadata for individual run entries (%d total)', runs.length);
         async.map(runs, cog.getRun.bind(cog), function(err, results) {
           log('received all test metadata from server (took %s requests)', submissions.length + runs.length);
+          
+          // filter submissions by test UUID
+          // this should really be done on the server side, but it's not
+          var test = $('select#test').val();
+          results = results.filter(function(entry) {
+            var key = Object.keys(entry)[0];
+            return entry[key].test === test;
+          });
 
           log('populating results table with received entries');
           populateResultTable(results);
